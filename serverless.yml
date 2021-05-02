@@ -1,0 +1,50 @@
+service: Scrape-Url
+
+custom:
+  account: "${self:provider.account}"
+  region:  "${self:provider.region}"
+  stage:   "${self:provider.stage}"
+
+  bundle:
+    sourcemaps: false
+    caching: true
+    stats: false
+    linting: false
+
+  apiVersion: 'v1'
+  scrapeStack: "${self:service}-${self:custom.stage}"
+  scrapeMetaDataLogsResource:
+    - { "Fn::Join": [":", ["arn:aws:logs","${self:custom.region}","${self:custom.account}","log-group:/aws/lambda/${self:custom.scrapeStack}-*:*:*"]] }
+
+package:
+  individually: true
+
+plugins:
+  - serverless-bundle
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+
+  account: "#{AWS::AccountId}"
+  region: "${opt:region, 'us-east-1'}"
+  stage: "${opt:stage, 'develop'}"
+
+  stackName: ${self:service.name}-${self:custom.stage}-service
+  stackTags:
+    SERVICE: "${self:service.name}"
+    LEVEL: "service"
+
+  runtime: nodejs12.x
+  versionFunctions: false
+
+  environment:
+    ACCOUNT: "${self:custom.account}"
+    REGION:  "${self:custom.region}"
+    STAGE:   "${self:custom.stage}"
+
+functions:
+  ${file(iac/Lambda.yml):functions}
+
+resources:
+  - ${file(iac/IAM.yml)}
