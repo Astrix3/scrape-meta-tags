@@ -55,10 +55,3 @@ module.exports.scrapeMetaData = async (event, context, callback) => {
         return responses.failure(error);
     }
 };
-
-(async () => {
-    console.time('api');
-    let a = await handle({body:JSON.stringify({url:"https://www.google.com"})});
-    console.timeEnd('api');
-    console.log(a);
-})();
